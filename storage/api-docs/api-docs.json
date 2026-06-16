@@ -1,0 +1,27 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Mon API Blog",
+        "description": "Documentation interactive de mon API de Blog",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0",
+            "description": "Serveur Local"
+        }
+    ],
+    "paths": {
+        "/articles": {
+            "get": {
+                "tags": ["Articles"],
+                "summary": "Liste paginée des articles",
+                "responses": {
+                    "200": {
+                        "description": "Succès"
+                    }
+                }
+            }
+        }
+    }
+}
