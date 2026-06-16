@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Installation des extensions nécessaires pour PostgreSQL et Laravel
 RUN apk add --no-cache unzip nodejs npm postgresql-dev \
