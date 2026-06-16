@@ -21,5 +21,5 @@ EXPOSE 8080
 # Variable par défaut : PostgreSQL (peut être surchargée par les env vars Render)
 ENV DB_CONNECTION=pgsql
 
-# Migrations + démarrage en une seule commande inline (évite les problèmes CRLF)
-CMD php artisan config:clear && php artisan migrate --force && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8080
+# Migrations + seed (une seule fois si la base est vide) + démarrage
+CMD php artisan config:clear && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8080
