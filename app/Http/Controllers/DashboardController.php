@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $totalComments = Comment::count();
 
         // 2. Optionnel : On récupère les 5 derniers articles créés pour l'affichage rapide
-        $latestArticles = Article::latest()->take(5)->get();
+        $latestArticles = Article::with(['category', 'user'])->latest()->take(5)->get();
 
         // 3. On retourne toutes ces données au format JSON
         return response()->json([

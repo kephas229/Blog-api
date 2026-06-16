@@ -24,6 +24,7 @@ class StoreArticleRequest extends FormRequest
             'content' => 'required|string',       // Le contenu textuel est obligatoire
             'short_description' => 'required|string|max:255', // La description courte est obligatoire et fait moins de 255 caractères
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // L'image est facultative, doit être une photo de 2 Mo maximum
+            'category_id' => 'required|exists:categories,id', // L'identifiant de la catégorie est obligatoire et doit exister dans la table categories
         ];
     }
 

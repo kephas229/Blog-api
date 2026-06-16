@@ -38,10 +38,15 @@ class ArticleController extends Controller
      *     @OA\Response(response=200, description="Liste des articles récupérée")
      * )
      */
+     /**
+     * 1. LISTE PAGINÉE + RECHERCHE + FILTRE CATÉGORIE (index)
+     */
     public function index(Request $request)
     {
-        $query = Article::query();
+        // On charge la relation 'category' et 'user' pour éviter de surcharger la base de données
+        $query = Article::with(['category', 'user']);
 
+        // Recherche par mot-clé dans le titre ou le contenu
         if ($request->has('search')) {
             $search = $request->input('search');
             $query->where(function($q) use ($search) {
@@ -50,7 +55,21 @@ class ArticleController extends Controller
             });
         }
 
+        // 👇 NOUVEAU : Filtrer par catégorie si l'ID est fourni dans l'URL
+        if ($request->has('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        // Pagination par 10 articles
         $articles = $query->latest()->paginate(10);
+
+        // Transformation des chemins d'images en URL complètes pour la liste
+        $articles->getCollection()->transform(function ($article) {
+            if ($article->image) {
+                $article->image = asset('storage/' . $article->image);
+            }
+            return $article;
+        });
 
         return response()->json($articles);
     }
@@ -117,9 +136,16 @@ class ArticleController extends Controller
      * )
      */
     public function show(Article $article)
-    {
-        return response()->json($article);
-    }
+        {
+            // Charge la catégorie, l'auteur et les commentaires de l'article
+            $article->load(['category', 'user', 'comments']);
+
+            if ($article->image) {
+                $article->image = asset('storage/' . $article->image);
+            }
+
+            return response()->json($article);
+        }
 
     /**
      * @OA\Post(

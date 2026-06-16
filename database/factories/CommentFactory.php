@@ -10,20 +10,17 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class CommentFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = Comment::class;
+
     public function definition(): array
     {
+        $this->faker->locale = 'fr_FR';
+
         return [
-            'visitor_name' => $this->faker->name(), // Génère un faux nom (ex: Jean Dupont)
-            'visitor_email' => $this->faker->safeEmail(), // Génère un faux email valide
-            'message' => $this->faker->sentence(12), // Génère un faux message de 12 mots
-            'article_id' => \App\Models\Article::factory(), // Lie un article automatiquement
+            'visitor_name'  => $this->faker->name(),
+            'visitor_email' => $this->faker->safeEmail(),
+            'message'       => $this->faker->paragraph(3),
+            'article_id'    => \App\Models\Article::factory(),
         ];
     }
-
-
 }
