@@ -2,10 +2,32 @@
 
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
+
+// Route de diagnostic temporaire
+Route::get('/debug', function () {
+    try {
+        DB::connection()->getPdo();
+        $dbOk = true;
+        $dbName = DB::connection()->getDatabaseName();
+    } catch (\Exception $e) {
+        $dbOk = false;
+        $dbName = $e->getMessage();
+    }
+    return response()->json([
+        'laravel'     => app()->version(),
+        'env'         => app()->environment(),
+        'db_driver'   => config('database.default'),
+        'db_host'     => config('database.connections.' . config('database.default') . '.host'),
+        'db_database' => config('database.connections.' . config('database.default') . '.database'),
+        'db_connected'=> $dbOk,
+        'db_message'  => $dbName,
+    ]);
+});
 
 // 1. Routes publiques d'authentification
 Route::post('/register', [AuthController::class, 'register']);

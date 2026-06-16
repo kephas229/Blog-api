@@ -1,8 +1,9 @@
 #!/bin/sh
 set -e
 
-echo "==> Mise en cache de la configuration..."
-php artisan config:cache
+echo "==> Nettoyage du cache de configuration..."
+php artisan config:clear
+php artisan cache:clear
 
 echo "==> Exécution des migrations..."
 php artisan migrate --force
