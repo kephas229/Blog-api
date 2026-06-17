@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Article;
+use App\Services\CloudinaryService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreArticleRequest;
 use App\Http\Requests\UpdateArticleRequest;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use OpenApi\Attributes as OA;
 
@@ -104,6 +104,8 @@ class ArticleController extends Controller
 {
     use AuthorizesRequests;
 
+    public function __construct(private CloudinaryService $cloudinary) {}
+
     #[OA\Get(
         path: '/api/articles',
         summary: 'Liste paginée des articles',
@@ -136,12 +138,7 @@ class ArticleController extends Controller
 
         $articles = $query->latest()->paginate(10);
 
-        $articles->getCollection()->transform(function ($article) {
-            if ($article->image) {
-                $article->image = asset('storage/' . $article->image);
-            }
-            return $article;
-        });
+        // Les URLs Cloudinary sont déjà complètes dans la colonne image
 
         return response()->json($articles);
     }
@@ -179,19 +176,15 @@ class ArticleController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('articles', 'public');
-            $validated['image'] = $imagePath;
+            // Upload sur Cloudinary — retourne l'URL sécurisée complète
+            $validated['image'] = $this->cloudinary->upload($request->file('image'));
         }
 
         $validated['user_id'] = $request->user()->id;
         $article = Article::create($validated);
 
-        if ($article->image) {
-            $article->image = asset('storage/' . $article->image);
-        }
-
         return response()->json([
-            'message' => 'Article créé avec succès avec son image !',
+            'message' => 'Article créé avec succès !',
             'article' => $article
         ], 201);
     }
@@ -213,10 +206,9 @@ class ArticleController extends Controller
     {
         $article->load(['category', 'user', 'comments']);
 
-        if ($article->image) {
-            $article->image = asset('storage/' . $article->image);
-        }
-
+        // L'image est une URL Cloudinary complète — pas de transformation
+        return response()->json($article);
+    }
         return response()->json($article);
     }
 
@@ -257,18 +249,15 @@ class ArticleController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('image')) {
+            // Supprime l'ancienne image sur Cloudinary si elle existe
             if ($article->image) {
-                Storage::disk('public')->delete($article->image);
+                $this->cloudinary->delete($article->image);
             }
-            $imagePath = $request->file('image')->store('articles', 'public');
-            $validated['image'] = $imagePath;
+            // Upload la nouvelle image sur Cloudinary
+            $validated['image'] = $this->cloudinary->upload($request->file('image'));
         }
 
         $article->update($validated);
-
-        if ($article->image) {
-            $article->image = asset('storage/' . $article->image);
-        }
 
         return response()->json([
             'message' => 'Article et image mis à jour avec succès !',
@@ -296,8 +285,9 @@ class ArticleController extends Controller
     {
         $this->authorize('delete', $article);
 
+        // Supprime l'image sur Cloudinary si elle existe
         if ($article->image) {
-            Storage::disk('public')->delete($article->image);
+            $this->cloudinary->delete($article->image);
         }
 
         $article->delete();
