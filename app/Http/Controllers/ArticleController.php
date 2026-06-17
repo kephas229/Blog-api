@@ -209,8 +209,6 @@ class ArticleController extends Controller
         // L'image est une URL Cloudinary complète — pas de transformation
         return response()->json($article);
     }
-        return response()->json($article);
-    }
 
     #[OA\Put(
         path: '/api/articles/{id}',

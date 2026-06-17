@@ -8,21 +8,37 @@ use Illuminate\Http\UploadedFile;
 
 class CloudinaryService
 {
-    private Cloudinary $cloudinary;
+    private ?Cloudinary $cloudinary = null;
     private string $folder;
 
     public function __construct()
     {
-        $this->cloudinary = new Cloudinary(
-            sprintf(
-                'cloudinary://%s:%s@%s',
-                config('filesystems.cloudinary.api_key'),
-                config('filesystems.cloudinary.api_secret'),
-                config('filesystems.cloudinary.cloud_name')
-            )
-        );
-
         $this->folder = config('filesystems.cloudinary.folder', 'blogflow');
+    }
+
+    /**
+     * Initialisation lazy — uniquement lors du premier upload ou delete.
+     * Évite un crash au boot si les variables Cloudinary sont absentes.
+     */
+    private function client(): Cloudinary
+    {
+        if ($this->cloudinary === null) {
+            $cloudName = config('filesystems.cloudinary.cloud_name');
+            $apiKey    = config('filesystems.cloudinary.api_key');
+            $apiSecret = config('filesystems.cloudinary.api_secret');
+
+            if (!$cloudName || !$apiKey || !$apiSecret) {
+                throw new \RuntimeException(
+                    'Configuration Cloudinary manquante. Vérifiez CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY et CLOUDINARY_API_SECRET.'
+                );
+            }
+
+            $this->cloudinary = new Cloudinary(
+                sprintf('cloudinary://%s:%s@%s', $apiKey, $apiSecret, $cloudName)
+            );
+        }
+
+        return $this->cloudinary;
     }
 
     /**
@@ -34,7 +50,7 @@ class CloudinaryService
         $mimeType     = $file->getMimeType() ?? '';
         $resourceType = str_starts_with($mimeType, 'video/') ? 'video' : 'image';
 
-        $result = $this->cloudinary->uploadApi()->upload(
+        $result = $this->client()->uploadApi()->upload(
             $file->getRealPath(),
             [
                 'folder'          => "{$this->folder}/{$subfolder}",
@@ -52,11 +68,16 @@ class CloudinaryService
      */
     public function delete(string $secureUrl): void
     {
+        // Ne tente pas de supprimer les URLs externes (Unsplash, etc.)
+        if (!str_contains($secureUrl, 'res.cloudinary.com')) {
+            return;
+        }
+
         $publicId     = $this->extractPublicId($secureUrl);
         $resourceType = str_contains($secureUrl, '/video/') ? 'video' : 'image';
 
         if ($publicId) {
-            $this->cloudinary->uploadApi()->destroy(
+            $this->client()->uploadApi()->destroy(
                 $publicId,
                 ['resource_type' => $resourceType]
             );
