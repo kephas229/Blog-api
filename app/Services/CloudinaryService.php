@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use Cloudinary\Cloudinary;
-use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;
 use Illuminate\Http\UploadedFile;
 
@@ -14,35 +13,34 @@ class CloudinaryService
 
     public function __construct()
     {
-        Configuration::instance([
-            'cloud' => [
-                'cloud_name' => config('filesystems.disks.cloudinary.cloud_name'),
-                'api_key'    => config('filesystems.disks.cloudinary.api_key'),
-                'api_secret' => config('filesystems.disks.cloudinary.api_secret'),
-            ],
-            'url' => ['secure' => true],
-        ]);
+        $this->cloudinary = new Cloudinary(
+            sprintf(
+                'cloudinary://%s:%s@%s',
+                config('filesystems.disks.cloudinary.api_key'),
+                config('filesystems.disks.cloudinary.api_secret'),
+                config('filesystems.disks.cloudinary.cloud_name')
+            )
+        );
 
-        $this->cloudinary = new Cloudinary();
-        $this->folder     = config('filesystems.disks.cloudinary.folder', 'blogflow');
+        $this->folder = config('filesystems.disks.cloudinary.folder', 'blogflow');
     }
 
     /**
-     * Upload un fichier image ou vidéo sur Cloudinary.
-     * Retourne l'URL sécurisée du fichier uploadé.
+     * Upload une image ou vidéo sur Cloudinary.
+     * Retourne l'URL sécurisée (https://res.cloudinary.com/...).
      */
     public function upload(UploadedFile $file, string $subfolder = 'articles'): string
     {
-        $resourceType = str_starts_with($file->getMimeType() ?? '', 'video/') ? 'video' : 'image';
+        $mimeType     = $file->getMimeType() ?? '';
+        $resourceType = str_starts_with($mimeType, 'video/') ? 'video' : 'image';
 
-        $result = (new UploadApi())->upload(
+        $result = $this->cloudinary->uploadApi()->upload(
             $file->getRealPath(),
             [
-                'folder'        => "{$this->folder}/{$subfolder}",
-                'resource_type' => $resourceType,
-                'use_filename'  => false,
+                'folder'          => "{$this->folder}/{$subfolder}",
+                'resource_type'   => $resourceType,
                 'unique_filename' => true,
-                'overwrite'     => false,
+                'overwrite'       => false,
             ]
         );
 
@@ -50,28 +48,30 @@ class CloudinaryService
     }
 
     /**
-     * Supprime un fichier sur Cloudinary à partir de son URL sécurisée.
-     * Détermine automatiquement le public_id et le resource_type.
+     * Supprime un fichier sur Cloudinary depuis son URL sécurisée.
      */
     public function delete(string $secureUrl): void
     {
-        $publicId    = $this->extractPublicId($secureUrl);
+        $publicId     = $this->extractPublicId($secureUrl);
         $resourceType = str_contains($secureUrl, '/video/') ? 'video' : 'image';
 
         if ($publicId) {
-            (new UploadApi())->destroy($publicId, ['resource_type' => $resourceType]);
+            $this->cloudinary->uploadApi()->destroy(
+                $publicId,
+                ['resource_type' => $resourceType]
+            );
         }
     }
 
     /**
      * Extrait le public_id depuis une URL Cloudinary.
-     * Ex: https://res.cloudinary.com/ddffet7qj/image/upload/v123/blogflow/articles/abc.jpg
-     *     → blogflow/articles/abc
+     * Exemple :
+     *   https://res.cloudinary.com/ddffet7qj/image/upload/v123/blogflow/articles/abc.jpg
+     *   → blogflow/articles/abc
      */
     private function extractPublicId(string $url): ?string
     {
-        // Retire l'extension et tout ce qui précède le dossier de upload
-        if (preg_match('/\/upload\/(?:v\d+\/)?(.+?)(\.[a-z0-9]+)?$/', $url, $matches)) {
+        if (preg_match('/\/upload\/(?:v\d+\/)?(.+?)(\.[a-z0-9]+)?$/i', $url, $matches)) {
             return $matches[1];
         }
         return null;
