@@ -26,4 +26,4 @@ ENV CLOUDINARY_CLOUD_NAME=ddffet7qj
 ENV CLOUDINARY_FOLDER=blogflow
 
 # Migrations + seed (une seule fois si la base est vide) + démarrage
-CMD php artisan config:clear && php artisan migrate --force && php artisan db:seed --force && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8080
+CMD php artisan config:clear && php artisan migrate:fresh --force && php artisan db:seed --force && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8080
