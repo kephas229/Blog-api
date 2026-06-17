@@ -16,13 +16,13 @@ class CloudinaryService
         $this->cloudinary = new Cloudinary(
             sprintf(
                 'cloudinary://%s:%s@%s',
-                config('filesystems.disks.cloudinary.api_key'),
-                config('filesystems.disks.cloudinary.api_secret'),
-                config('filesystems.disks.cloudinary.cloud_name')
+                config('filesystems.cloudinary.api_key'),
+                config('filesystems.cloudinary.api_secret'),
+                config('filesystems.cloudinary.cloud_name')
             )
         );
 
-        $this->folder = config('filesystems.disks.cloudinary.folder', 'blogflow');
+        $this->folder = config('filesystems.cloudinary.folder', 'blogflow');
     }
 
     /**

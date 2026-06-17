@@ -60,14 +60,24 @@ return [
             'report' => false,
         ],
 
-        'cloudinary' => [
-            'cloud_name'  => env('CLOUDINARY_CLOUD_NAME'),
-            'api_key'     => env('CLOUDINARY_API_KEY'),
-            'api_secret'  => env('CLOUDINARY_API_SECRET'),
-            'secure'      => true,
-            'folder'      => env('CLOUDINARY_FOLDER', 'blogflow'),
-        ],
+    ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cloudinary Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration pour le stockage des images et vidéos des articles.
+    | Utilisé directement par App\Services\CloudinaryService via le SDK.
+    |
+    */
+
+    'cloudinary' => [
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+        'api_key'    => env('CLOUDINARY_API_KEY'),
+        'api_secret' => env('CLOUDINARY_API_SECRET'),
+        'secure'     => true,
+        'folder'     => env('CLOUDINARY_FOLDER', 'blogflow'),
     ],
 
     /*
