@@ -13,12 +13,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Idempotent : ne seed que si la base est vide
-        if (User::count() > 0) {
-            $this->command?->info('Base déjà peuplée, seed ignoré.');
-            return;
-        }
-
         // ─── 1. Utilisateurs ──────────────────────────────────────────────────
         $admin = User::create([
             'name'     => 'Sophie Marchand',
