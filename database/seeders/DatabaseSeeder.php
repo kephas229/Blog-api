@@ -24,13 +24,14 @@ class DatabaseSeeder extends Seeder
             'name'     => 'Sophie Marchand',
             'email'    => 'admin@blogflow.fr',
             'password' => Hash::make('Admin@2024!'),
+            'role'     => 'admin',
         ]);
 
         $authors = collect([
-            ['name' => 'Thomas Leroy',    'email' => 'thomas.leroy@blogflow.fr',   'password' => Hash::make('Thomas@2024!')],
-            ['name' => 'Camille Dubois',  'email' => 'camille.dubois@blogflow.fr', 'password' => Hash::make('Camille@2024!')],
-            ['name' => 'Lucas Martin',    'email' => 'lucas.martin@blogflow.fr',   'password' => Hash::make('Lucas@2024!')],
-            ['name' => 'Elodie Bernard',  'email' => 'elodie.bernard@blogflow.fr', 'password' => Hash::make('Elodie@2024!')],
+            ['name' => 'Thomas Leroy',    'email' => 'thomas.leroy@blogflow.fr',   'password' => Hash::make('Thomas@2024!'),  'role' => 'author'],
+            ['name' => 'Camille Dubois',  'email' => 'camille.dubois@blogflow.fr', 'password' => Hash::make('Camille@2024!'), 'role' => 'author'],
+            ['name' => 'Lucas Martin',    'email' => 'lucas.martin@blogflow.fr',   'password' => Hash::make('Lucas@2024!'),   'role' => 'author'],
+            ['name' => 'Elodie Bernard',  'email' => 'elodie.bernard@blogflow.fr', 'password' => Hash::make('Elodie@2024!'),  'role' => 'author'],
         ])->map(fn($d) => User::create($d));
 
         $allAuthors = $authors->prepend($admin);

@@ -42,6 +42,11 @@ class DashboardController extends Controller
     )]
     public function index()
     {
+        // Vérification du rôle admin
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'Accès réservé aux administrateurs.'], 403);
+        }
+
         $totalArticles  = Article::count();
         $totalUsers     = User::count();
         $totalComments  = Comment::count();
